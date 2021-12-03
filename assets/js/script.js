@@ -1,6 +1,9 @@
 var userFormEl = document.querySelector("#user-form");
 var cityInputEl = document.querySelector("#city");
 var citySearchHistory = JSON.parse(localStorage.getItem("citySearchHistory"));
+var cityHistoryEl = document.getElementById("city-buttons");
+var citySelect = "";
+var checkPrevious = true;
 
 // adds current date to jumbotron
 var currentDay= moment().format('dddd, MMMM DD, YYYY');
@@ -15,6 +18,8 @@ var formSubmitHandler = function(event) {
   
     if (city) {
       console.log(city);
+      citySelect = cityInputEl.value.trim();
+      checkPrevious = false;
       getCityResponse(city);
       // clear old content
       cityInputEl.value = "";
@@ -24,7 +29,7 @@ var formSubmitHandler = function(event) {
   };
 
 var getCityResponse = function(language) {
-  var citySelect = cityInputEl.value.trim();
+   
   var citySelectMinus = citySelect.split(",")[0]; //removes state
   console.log(citySelect);
 
@@ -34,8 +39,9 @@ var getCityResponse = function(language) {
       if (response.ok) {
           response.json().then(function(data){
           console.log(data);
+          if (checkPrevious === false){
           storeCities(citySelect);
-          });
+          }});
     } else {
         alert("Error:" + response.statusText);
     }
@@ -53,5 +59,24 @@ function storeCities(citySelect){
     console.log(citySearchHistory);
     localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));
 };
+
+function showHistory(){
+    cityHistoryEl.innerHTML ="";
+    for (var i=0; i<citySearchHistory.length; i++){
+    var showCities = document.createElement("button");
+    showCities.setAttribute("type", "submit");
+    showCities.setAttribute("class", "col-8 btn btn-info align-self-center");
+    showCities.setAttribute("value", citySearchHistory[i]);
+    showCities.innerHTML = citySearchHistory[i];
+    cityHistoryEl.append(showCities);    
+}};
+
+showHistory();
+
+$(".btn-info").click(function() {
+    checkPrevious = true;
+    citySelect = $(this).val();
+    getCityResponse(citySelect);
+  });
 
 userFormEl.addEventListener("submit", formSubmitHandler);
