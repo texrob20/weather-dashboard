@@ -3,6 +3,7 @@ var cityInputEl = document.querySelector("#city");
 var citySearchHistory = [];
 var cityHistoryEl = document.getElementById("city-buttons");
 var cityWeatherEl = document.getElementById("city-weather");
+var fiveDayRow = document.getElementById("five-day-row");
 var citySelect = "";
 var checkPrevious = true;
 var cityData = {};
@@ -41,9 +42,21 @@ var getCityResponse = function(language) {
   fetch(apiUrl).then(function(response){
       if (response.ok) {
           response.json().then(function(data){
-          cityData = data;
-          console.log(cityData);
-          showCityData();
+          var lat = data.coord.lat;
+          var lon = data.coord.lon;
+          var fiveday =  "https://api.openweathermap.org/data/2.5/onecall?lat="+ data.coord.lat + "&lon=" + data.coord.lon +
+            "&exclude=minutely,hourly,alert&units=imperial&appid=ca0f1bc12f401f207d2783ba0f9c8ba8";
+          fetch(fiveday).then(function(response){
+          if (response.ok) {
+              response.json().then(function(data){
+              cityData = data;
+              console.log(cityData);
+              showCityData();
+              });          
+          } else {
+            alert("Error:" + response.statusText);
+          }
+        });
           if (checkPrevious === false){
           storeCities(citySelect);
           }});          
@@ -53,9 +66,24 @@ var getCityResponse = function(language) {
   });
 };
 
-var fiveDayOutlook = function() {
-  for (i=0; i<5; i++){
-
+function fiveDayOutlook () {
+  var fiveDayEl = "";  
+  fiveDayRow.textContent = "";
+  $("#five-day-row").append('<div class="col-12"><h3 class="font-weight-bold">5-Day Forecast:</h3></div>');
+  for (i=1; i<6; i++){
+    var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.daily[i].weather[0].icon + "@2x.png";  
+    fiveDayEl = $('<div class="row col-2 bg-success">');
+    weatherPic = $('<div class="col-12 d-flex justify-content-center"><img ' + weatherIcon + '></></div>');
+    dateBlock = $('<div class="col-12 m-1 p-2 font-weight-bold text-center">' + moment().add(i, 'day').format('MM/DD/YYYY') + '</div>');
+    tempBlock = $('<div class="col-12 m-1 p-2">Temp: '+ cityData.daily[i].temp.day + '&#8457</div>');
+    windBlock = $('<div class="col-12 m-1 p-2">Wind: '+ cityData.daily[i].wind_speed + ' MPH</div>');
+    humidityBlock = $('<div class="col-12 m-1 p-2">Humidity: ' + cityData.daily[i].humidity + '%</div>');
+    fiveDayEl.append(dateBlock);
+    fiveDayEl.append(weatherPic);    
+    fiveDayEl.append(tempBlock);
+    fiveDayEl.append(windBlock);
+    fiveDayEl.append(humidityBlock);     
+    $("#five-day-row").append(fiveDayEl);
   }
 }
 
@@ -95,29 +123,30 @@ function showHistory(){
 }}};
 
 function showCityData(){
-  var cityDataEl = "";
-  
-  var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.weather[0].icon + "@2x.png";
+  var cityDataEl = $('<div>');
+  cityWeatherEl.textContent = "";
+  document.getElementById("city-container").setAttribute("class", "border border-primary");
+  var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.current.weather[0].icon + "@2x.png";
   document.getElementById("city-selected").innerHTML = citySelect + " (" + moment().format('MM/DD/YYYY') + ") <img " + weatherIcon + " />";
-  var temp = cityData.main.temp;
-  var wind = cityData.wind.speed + " MPH";
-  var humidity = cityData.main.humidity + " %";
-  var lat = cityData.coord.lat;
-  var lon = cityData.coord.lon;
-  cityDataEl = document.createElement("div");
-  cityDataEl.setAttribute("class", "col-12 m-1 p-2");
-  cityDataEl.innerHTML = "Temp: " + cityData.main.temp + "&#8457";
-  cityWeatherEl.append(cityDataEl);
-  cityDataEl = document.createElement("div");
-  cityDataEl.setAttribute("class", "col-12 m-1 p-2");
-  cityDataEl.innerHTML = "Wind: " + cityData.wind.speed + " MPH"
-  cityWeatherEl.append(cityDataEl);
-  cityDataEl = document.createElement("div");
-  cityDataEl.setAttribute("class", "col-12 m-1 p-2");
-  cityDataEl.innerHTML = "Humidty: " + cityData.main.humidity + " %"
-  cityWeatherEl.append(cityDataEl);
-  console.log(lat);
-  console.log(lon);
+  tempBlock = $('<div class="col-12 m-1 p-2">Temp: '+ cityData.current.temp + '&#8457</div>');
+  windBlock = $('<div class="col-12 m-1 p-2">Wind: '+ cityData.current.wind_speed + ' MPH</div>');
+  humidityBlock = $('<div class="col-12 m-1 p-2">Humidity: ' + cityData.current.humidity + '%</div>');
+  if (cityData.current.uvi <=2){
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-success">' + cityData.current.uvi + '</span></div>');
+  } else if (cityData.current.uvi <=5){
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning">' + cityData.current.uvi + '</span></div>');
+  } else if (cityData.current.uvi <=7){
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning">' + cityData.current.uvi + '</span></div>');
+  } else {
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-danger">' + cityData.current.uvi + '</span></div>');
+  } 
+  cityDataEl.append(tempBlock);
+  cityDataEl.append(windBlock);
+  cityDataEl.append(humidityBlock); 
+  cityDataEl.append(uvIndexBlock);    
+  $("#city-weather").append(cityDataEl);
+  
+  fiveDayOutlook();
 }
 
 showHistory();
