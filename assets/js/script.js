@@ -92,9 +92,9 @@ function checkHistory(){
     for (var i=0; i<citySearchHistory.length; i++){
         if (citySearchHistory[i] == citySelectMinus || citySearchHistory[i] == citySelect){
           i = citySearchHistory.length;
-          console.log("true");
+          checkPrevious = true;
         } else {
-          console.log("false");
+          checkPrevious = false;         
     }}
 }
 // stores city input into local storage
@@ -106,14 +106,8 @@ function storeCities(citySelect){
 // displays previous cities searched that are stored in local storage
 function showHistory(){
     cityHistoryEl.innerHTML ="";
-    var test = JSON.parse(localStorage.getItem("citySearchHistory"));
-    console.log(test);
-    //checks for data in local storage, retrieves it if there or creates new var if not
-    if (test){
-        citySearchHistory = JSON.parse(localStorage.getItem("citySearchHistory"));
-    } else {
-        citySearchHistory = [];
-    };
+    citySearchHistory = [];
+    citySearchHistory = JSON.parse(localStorage.getItem("citySearchHistory"));
     // creates buttons for each previously searched city    
     for (var i=0; i<citySearchHistory.length; i++){
     var showCities = document.createElement("button");
