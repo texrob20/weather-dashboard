@@ -23,7 +23,6 @@ var formSubmitHandler = function(event) {
     if (city) {
       console.log(city);
       citySelect = cityInputEl.value.trim();
-      checkPrevious = false;  // sets value to false if city
       checkHistory(citySelect);
       getCityResponse(city);
       // clear old content
@@ -71,7 +70,7 @@ var getCityResponse = function(language) {
 function fiveDayOutlook () {
   var fiveDayEl = "";  
   fiveDayRow.textContent = ""; //resets display area
-  $("#five-day-row").append('<div class="col-12"><h3 class="font-weight-bold">5-Day Forecast:</h3></div>');
+  $("#five-day-row").append('<div class="col-12"><h3 class="font-weight-bold p-2">5-Day Forecast:</h3></div>');
   for (i=1; i<6; i++){
     var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.daily[i].weather[0].icon + "@2x.png";  
     fiveDayEl = $('<div class="row col-2 bg-success">');
@@ -93,7 +92,9 @@ function checkHistory(){
     for (var i=0; i<citySearchHistory.length; i++){
         if (citySearchHistory[i] == citySelectMinus || citySearchHistory[i] == citySelect){
           i = citySearchHistory.length;
-          checkPrevious=true;
+          checkPrevious = true;
+        } else {
+          checkPrevious = false;
     }}
 }
 // stores city input into local storage
