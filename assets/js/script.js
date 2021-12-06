@@ -7,6 +7,7 @@ var fiveDayRow = document.getElementById("five-day-row");
 var citySelect = "";
 var checkPrevious = true;
 var cityData = {};
+var citySelectMinus = "";
 
 // adds current date to jumbotron
 var currentDay= moment().format('dddd, MMMM DD, YYYY');
@@ -22,7 +23,7 @@ var formSubmitHandler = function(event) {
     if (city) {
       console.log(city);
       citySelect = cityInputEl.value.trim();
-      checkPrevious = false;
+      checkPrevious = false;  // sets value to false if city
       checkHistory(citySelect);
       getCityResponse(city);
       // clear old content
@@ -34,16 +35,14 @@ var formSubmitHandler = function(event) {
 
 var getCityResponse = function(language) {
    
-  var citySelectMinus = citySelect.split(",")[0]; //removes state
-  console.log(citySelect);
-
-  var apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + citySelectMinus + "&units=imperial&APPID=ca0f1bc12f401f207d2783ba0f9c8ba8";
+  citySelectMinus = citySelect.split(",")[0]; //removes state
   
+  var apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + citySelectMinus + "&units=imperial&APPID=ca0f1bc12f401f207d2783ba0f9c8ba8";
+  // checks for valid input
   fetch(apiUrl).then(function(response){
       if (response.ok) {
           response.json().then(function(data){
-          var lat = data.coord.lat;
-          var lon = data.coord.lon;
+          // uses initial lat and long to send api request for full 7 day forcast
           var fiveday =  "https://api.openweathermap.org/data/2.5/onecall?lat="+ data.coord.lat + "&lon=" + data.coord.lon +
             "&exclude=minutely,hourly,alert&units=imperial&appid=ca0f1bc12f401f207d2783ba0f9c8ba8";
           fetch(fiveday).then(function(response){
@@ -57,6 +56,9 @@ var getCityResponse = function(language) {
             alert("Error:" + response.statusText);
           }
         });
+          // checks to see if city has been previous entered or clicked.
+          checkHistory();  
+          // If new city, adds to previous search list
           if (checkPrevious === false){
           storeCities(citySelect);
           }});          
@@ -65,10 +67,10 @@ var getCityResponse = function(language) {
       }
   });
 };
-
+// displays 5 day outlook for selected city
 function fiveDayOutlook () {
   var fiveDayEl = "";  
-  fiveDayRow.textContent = "";
+  fiveDayRow.textContent = ""; //resets display area
   $("#five-day-row").append('<div class="col-12"><h3 class="font-weight-bold">5-Day Forecast:</h3></div>');
   for (i=1; i<6; i++){
     var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.daily[i].weather[0].icon + "@2x.png";  
@@ -86,20 +88,17 @@ function fiveDayOutlook () {
     $("#five-day-row").append(fiveDayEl);
   }
 }
-
+// checks to see if city was used as input before
 function checkHistory(){
     for (var i=0; i<citySearchHistory.length; i++){
-        if (citySearchHistory[i] === citySelect){
+        if (citySearchHistory[i] == citySelectMinus || citySearchHistory[i] == citySelect){
           i = citySearchHistory.length;
-        } else {
-            console.log("add to storage");
-        }
-    }
+          checkPrevious=true;
+    }}
 }
 
 function storeCities(citySelect){
     citySearchHistory.push(citySelect);
-    console.log(citySearchHistory);
     localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));
     showHistory();
 };
@@ -122,6 +121,7 @@ function showHistory(){
     cityHistoryEl.append(showCities);    
 }}};
 
+// displays current day weather information
 function showCityData(){
   var cityDataEl = $('<div>');
   cityWeatherEl.textContent = "";
@@ -131,13 +131,14 @@ function showCityData(){
   tempBlock = $('<div class="col-12 m-1 p-2">Temp: '+ cityData.current.temp + '&#8457</div>');
   windBlock = $('<div class="col-12 m-1 p-2">Wind: '+ cityData.current.wind_speed + ' MPH</div>');
   humidityBlock = $('<div class="col-12 m-1 p-2">Humidity: ' + cityData.current.humidity + '%</div>');
-  if (cityData.current.uvi <=2){
+  // checks u/v index and colors text based on threat level
+  if (cityData.current.uvi <=2){ //green is good
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-success">' + cityData.current.uvi + '</span></div>');
-  } else if (cityData.current.uvi <=5){
+  } else if (cityData.current.uvi <=5){ //yellow is warning
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning">' + cityData.current.uvi + '</span></div>');
-  } else if (cityData.current.uvi <=7){
+  } else if (cityData.current.uvi <=7){ //yellow is still warning
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning">' + cityData.current.uvi + '</span></div>');
-  } else {
+  } else { //red is dangerous levels
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-danger">' + cityData.current.uvi + '</span></div>');
   } 
   cityDataEl.append(tempBlock);
@@ -152,7 +153,8 @@ function showCityData(){
 showHistory();
 
 $(".btn-info").click(function() {
-    checkPrevious = true;
+    //prevents duplicate saves of city when clicked from previous searches
+    checkPrevious = true;  
     citySelect = $(this).val();
     getCityResponse(citySelect);
   });
