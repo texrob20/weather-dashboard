@@ -23,7 +23,7 @@ var formSubmitHandler = function(event) {
     if (city) {
       console.log(city);
       citySelect = cityInputEl.value.trim();
-      checkHistory(citySelect);
+      
       getCityResponse(city);
       // clear old content
       cityInputEl.value = "";
@@ -72,7 +72,7 @@ function fiveDayOutlook () {
   fiveDayRow.textContent = ""; //resets display area
   $("#five-day-row").append('<div class="col-12"><h3 class="font-weight-bold p-2">5-Day Forecast:</h3></div>');
   for (i=1; i<6; i++){
-    var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.daily[i].weather[0].icon + "@2x.png";  
+    var weatherIcon = "src=https://openweathermap.org/img/wn/" + cityData.daily[i].weather[0].icon + "@2x.png";  
     fiveDayEl = $('<div class="row col-2 bg-success">');
     weatherPic = $('<div class="col-12 d-flex justify-content-center"><img ' + weatherIcon + '></></div>');
     dateBlock = $('<div class="col-12 m-1 p-2 font-weight-bold text-center"><h4>' + moment().add(i, 'day').format('MM/DD/YYYY') + '</h4></div>');
@@ -92,9 +92,9 @@ function checkHistory(){
     for (var i=0; i<citySearchHistory.length; i++){
         if (citySearchHistory[i] == citySelectMinus || citySearchHistory[i] == citySelect){
           i = citySearchHistory.length;
-          checkPrevious = true;
+          console.log("true");
         } else {
-          checkPrevious = false;
+          console.log("false");
     }}
 }
 // stores city input into local storage
@@ -107,6 +107,7 @@ function storeCities(citySelect){
 function showHistory(){
     cityHistoryEl.innerHTML ="";
     var test = JSON.parse(localStorage.getItem("citySearchHistory"));
+    console.log(test);
     //checks for data in local storage, retrieves it if there or creates new var if not
     if (test){
         citySearchHistory = JSON.parse(localStorage.getItem("citySearchHistory"));
@@ -128,7 +129,7 @@ function showCityData(){
   var cityDataEl = $('<div>');
   cityWeatherEl.textContent = "";
   document.getElementById("city-container").setAttribute("class", "border border-primary");
-  var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.current.weather[0].icon + "@2x.png";
+  var weatherIcon = "src=https://openweathermap.org/img/wn/" + cityData.current.weather[0].icon + "@2x.png";
   document.getElementById("city-selected").innerHTML = citySelect + " (" + moment().format('MM/DD/YYYY') + ") <img " + weatherIcon + " />";
   tempBlock = $('<div class="col-12 m-1 p-2">Temp: '+ cityData.current.temp + '&#8457</div>');
   windBlock = $('<div class="col-12 m-1 p-2">Wind: '+ cityData.current.wind_speed + ' MPH</div>');
