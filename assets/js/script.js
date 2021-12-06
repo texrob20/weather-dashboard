@@ -49,7 +49,6 @@ var getCityResponse = function(language) {
           if (response.ok) {
               response.json().then(function(data){
               cityData = data;
-              console.log(cityData);
               showCityData();
               });          
           } else {
@@ -64,6 +63,7 @@ var getCityResponse = function(language) {
           }});          
       } else {
         alert("Error:" + response.statusText);
+        return;
       }
   });
 };
@@ -76,7 +76,7 @@ function fiveDayOutlook () {
     var weatherIcon = "src=http://openweathermap.org/img/wn/" + cityData.daily[i].weather[0].icon + "@2x.png";  
     fiveDayEl = $('<div class="row col-2 bg-success">');
     weatherPic = $('<div class="col-12 d-flex justify-content-center"><img ' + weatherIcon + '></></div>');
-    dateBlock = $('<div class="col-12 m-1 p-2 font-weight-bold text-center">' + moment().add(i, 'day').format('MM/DD/YYYY') + '</div>');
+    dateBlock = $('<div class="col-12 m-1 p-2 font-weight-bold text-center"><h4>' + moment().add(i, 'day').format('MM/DD/YYYY') + '</h4></div>');
     tempBlock = $('<div class="col-12 m-1 p-2">Temp: '+ cityData.daily[i].temp.day + '&#8457</div>');
     windBlock = $('<div class="col-12 m-1 p-2">Wind: '+ cityData.daily[i].wind_speed + ' MPH</div>');
     humidityBlock = $('<div class="col-12 m-1 p-2">Humidity: ' + cityData.daily[i].humidity + '%</div>');
@@ -96,22 +96,23 @@ function checkHistory(){
           checkPrevious=true;
     }}
 }
-
+// stores city input into local storage
 function storeCities(citySelect){
     citySearchHistory.push(citySelect);
     localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));
     showHistory();
 };
-
+// displays previous cities searched that are stored in local storage
 function showHistory(){
     cityHistoryEl.innerHTML ="";
     var test = JSON.parse(localStorage.getItem("citySearchHistory"));
+    //checks for data in local storage, retrieves it if there or creates new var if not
     if (test){
         citySearchHistory = JSON.parse(localStorage.getItem("citySearchHistory"));
     } else {
         citySearchHistory = [];
     };
-    if (citySearchHistory) {
+    // creates buttons for each previously searched city    
     for (var i=0; i<citySearchHistory.length; i++){
     var showCities = document.createElement("button");
     showCities.setAttribute("type", "submit");
@@ -119,7 +120,7 @@ function showHistory(){
     showCities.setAttribute("value", citySearchHistory[i]);
     showCities.innerHTML = citySearchHistory[i];
     cityHistoryEl.append(showCities);    
-}}};
+}};
 
 // displays current day weather information
 function showCityData(){
@@ -133,13 +134,13 @@ function showCityData(){
   humidityBlock = $('<div class="col-12 m-1 p-2">Humidity: ' + cityData.current.humidity + '%</div>');
   // checks u/v index and colors text based on threat level
   if (cityData.current.uvi <=2){ //green is good
-    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-success">' + cityData.current.uvi + '</span></div>');
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-success rounded px-2">' + cityData.current.uvi + '</span></div>');
   } else if (cityData.current.uvi <=5){ //yellow is warning
-    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning">' + cityData.current.uvi + '</span></div>');
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning rounded px-2">' + cityData.current.uvi + '</span></div>');
   } else if (cityData.current.uvi <=7){ //yellow is still warning
-    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning">' + cityData.current.uvi + '</span></div>');
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning rounded px-2">' + cityData.current.uvi + '</span></div>');
   } else { //red is dangerous levels
-    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-danger">' + cityData.current.uvi + '</span></div>');
+    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-danger rounded px-2">' + cityData.current.uvi + '</span></div>');
   } 
   cityDataEl.append(tempBlock);
   cityDataEl.append(windBlock);
@@ -150,8 +151,10 @@ function showCityData(){
   fiveDayOutlook();
 }
 
+//displays locally stored previous searches
 showHistory();
 
+//listens for click on previously searched city 
 $(".btn-info").click(function() {
     //prevents duplicate saves of city when clicked from previous searches
     checkPrevious = true;  
@@ -159,4 +162,5 @@ $(".btn-info").click(function() {
     getCityResponse(citySelect);
   });
 
+//listens for the user to submit a city
 userFormEl.addEventListener("submit", formSubmitHandler);
