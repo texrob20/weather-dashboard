@@ -5,7 +5,7 @@ var cityHistoryEl = document.getElementById("city-buttons");
 var cityWeatherEl = document.getElementById("city-weather");
 var fiveDayRow = document.getElementById("five-day-row");
 var citySelect = "";
-var checkPrevious = true;
+var checkPrevious = false;
 var cityData = {};
 var citySelectMinus = "";
 
@@ -23,14 +23,13 @@ var formSubmitHandler = function(event) {
     if (city) {
       console.log(city);
       citySelect = cityInputEl.value.trim();
-      
       getCityResponse(city);
       // clear old content
       cityInputEl.value = "";
     } else {
       alert("Please enter a city");
     }
-  };
+};
 
 var getCityResponse = function(language) {
    
@@ -54,12 +53,15 @@ var getCityResponse = function(language) {
             alert("Error:" + response.statusText);
           }
         });
-          // checks to see if city has been previous entered or clicked.
-          checkHistory();  
-          // If new city, adds to previous search list
-          if (checkPrevious === false){
+        // checks to see if city has been previous entered or clicked.
+        checkHistory();  
+        // If new city, adds to previous search list
+        console.log(checkPrevious);
+        if (checkPrevious === false){
           storeCities(citySelect);
-          }});          
+        }
+      });
+   
       } else {
         alert("Error:" + response.statusText);
         return;
@@ -89,34 +91,47 @@ function fiveDayOutlook () {
 }
 // checks to see if city was used as input before
 function checkHistory(){
+    if (citySearchHistory != null){
     for (var i=0; i<citySearchHistory.length; i++){
         if (citySearchHistory[i] == citySelectMinus || citySearchHistory[i] == citySelect){
           i = citySearchHistory.length;
           checkPrevious = true;
         } else {
           checkPrevious = false;         
-    }}
+    }}}
+    
 }
 // stores city input into local storage
 function storeCities(citySelect){
-    citySearchHistory.push(citySelect);
-    localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));
+    if (citySearchHistory != null){
+        citySearchHistory.push(citySelect);
+        console.log("storeCities")
+        localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));        
+    } else {
+        citySearchHistory = [citySelect];
+        localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));        
+    }
     showHistory();
+    cityBtnListener();
 };
 // displays previous cities searched that are stored in local storage
 function showHistory(){
     cityHistoryEl.innerHTML ="";
-    citySearchHistory = [];
     citySearchHistory = JSON.parse(localStorage.getItem("citySearchHistory"));
+    if (citySearchHistory != null){
     // creates buttons for each previously searched city    
     for (var i=0; i<citySearchHistory.length; i++){
-    var showCities = document.createElement("button");
-    showCities.setAttribute("type", "submit");
-    showCities.setAttribute("class", "col-8 btn btn-info p-2 m-1");
-    showCities.setAttribute("value", citySearchHistory[i]);
-    showCities.innerHTML = citySearchHistory[i];
-    cityHistoryEl.append(showCities);    
-}};
+      var showCities = document.createElement("div");
+      showCities.setAttribute("id", "cityBtn");
+      showCities.setAttribute("class", "col-8 btn btn-info p-2 m-1");
+      showCities.setAttribute("data-id", i);
+      showCities.setAttribute("value", citySearchHistory[i]);
+      showCities.innerHTML = citySearchHistory[i];
+    cityHistoryEl.append(showCities);  
+    } 
+    console.log(citySearchHistory);
+  }
+};
 
 // displays current day weather information
 function showCityData(){
@@ -145,18 +160,24 @@ function showCityData(){
   $("#city-weather").append(cityDataEl);
   
   fiveDayOutlook();
-}
-
-//displays locally stored previous searches
-showHistory();
-
-//listens for click on previously searched city 
-$(".btn-info").click(function() {
-    //prevents duplicate saves of city when clicked from previous searches
-    checkPrevious = true;  
-    citySelect = $(this).val();
-    getCityResponse(citySelect);
-  });
+};
 
 //listens for the user to submit a city
 userFormEl.addEventListener("submit", formSubmitHandler);
+
+//listens for click on previously searched city 
+function cityBtnListener(){
+$(document).ready(function() {
+  $(".btn-info").click(function() {
+    //prevents duplicate saves of city when clicked from previous searches
+    checkPrevious = true;  
+    id = $(this).data("id");
+    citySelect = citySearchHistory[id];
+    console.log(citySelect, "click");
+    getCityResponse(citySelect);
+    });
+  });
+}
+//displays locally stored previous searches
+showHistory();
+cityBtnListener();
