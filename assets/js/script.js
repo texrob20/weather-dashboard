@@ -55,7 +55,6 @@ var getCityResponse = function(language) {
         // checks to see if city has been previous entered or clicked.
         checkHistory();  
         // If new city, adds to previous search list
-        console.log(checkPrevious);
         if (checkPrevious === false){
           storeCities(citySelect);
         }
