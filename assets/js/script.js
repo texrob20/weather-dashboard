@@ -21,7 +21,6 @@ var formSubmitHandler = function(event) {
     var city = cityInputEl.value.trim();
   
     if (city) {
-      console.log(city);
       citySelect = cityInputEl.value.trim();
       getCityResponse(city);
       // clear old content
@@ -105,14 +104,13 @@ function checkHistory(){
 function storeCities(citySelect){
     if (citySearchHistory != null){
         citySearchHistory.push(citySelect);
-        console.log("storeCities")
         localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));        
     } else {
         citySearchHistory = [citySelect];
         localStorage.setItem('citySearchHistory', JSON.stringify(citySearchHistory));        
     }
     showHistory();
-    cityBtnListener();
+    cityBtnListener(); //resets listener for previous searched cities
 };
 // displays previous cities searched that are stored in local storage
 function showHistory(){
@@ -129,7 +127,6 @@ function showHistory(){
       showCities.innerHTML = citySearchHistory[i];
     cityHistoryEl.append(showCities);  
     } 
-    console.log(citySearchHistory);
   }
 };
 
@@ -144,13 +141,11 @@ function showCityData(){
   windBlock = $('<div class="col-12 m-1 p-2">Wind: '+ cityData.current.wind_speed + ' MPH</div>');
   humidityBlock = $('<div class="col-12 m-1 p-2">Humidity: ' + cityData.current.humidity + '%</div>');
   // checks u/v index and colors text based on threat level
-  if (cityData.current.uvi <=2){ //green is good
+  if (cityData.current.uvi <=2){ // green is favorable
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-success rounded px-2">' + cityData.current.uvi + '</span></div>');
-  } else if (cityData.current.uvi <=5){ //yellow is warning
+  } else if (cityData.current.uvi <=7){ // yellow is moderate
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning rounded px-2">' + cityData.current.uvi + '</span></div>');
-  } else if (cityData.current.uvi <=7){ //yellow is still warning
-    uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-warning rounded px-2">' + cityData.current.uvi + '</span></div>');
-  } else { //red is dangerous levels
+  } else { // red is severe
     uvIndexBlock = $('<div class="col-12 m-1 p-2">U/V Index: <span class="bg-danger rounded px-2">' + cityData.current.uvi + '</span></div>');
   } 
   cityDataEl.append(tempBlock);
@@ -171,13 +166,13 @@ $(document).ready(function() {
   $(".btn-info").click(function() {
     //prevents duplicate saves of city when clicked from previous searches
     checkPrevious = true;  
-    id = $(this).data("id");
-    citySelect = citySearchHistory[id];
-    console.log(citySelect, "click");
+    id = $(this).data("id"); // gets data-id of button clicked
+    citySelect = citySearchHistory[id]; // uses data-id to get corresponding city value
     getCityResponse(citySelect);
     });
   });
 }
 //displays locally stored previous searches
 showHistory();
+// starts listeners for previously searched cities buttons
 cityBtnListener();
